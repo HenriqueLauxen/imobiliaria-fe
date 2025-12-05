@@ -1,5 +1,6 @@
-// para deploy, alterar a url /api pra a url do backend. ex: https://seu-backend.railway.app
-const API_URL = '/api';
+const API_URL = import.meta.env.PROD 
+  ? 'https://imobiliaria-be-production.up.railway.app' 
+  : '/api';
 
 const api = {
   get: async (endpoint) => {
