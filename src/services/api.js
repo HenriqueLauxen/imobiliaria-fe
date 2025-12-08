@@ -1,4 +1,4 @@
-const API_URL = 'https://imobiliaria-be.fly.dev';
+const API_URL = 'https://imobiliaria.fly.dev';
 
 const api = {
   /**

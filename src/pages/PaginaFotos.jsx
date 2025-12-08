@@ -24,9 +24,6 @@ function PaginaFotos() {
     carregarDados();
   }, []);
 
-  /**
-   * Carrega fotos e imóveis disponíveis
-   */
   const carregarDados = async () => {
     try {
       setLoading(true);
@@ -73,7 +70,7 @@ function PaginaFotos() {
         formData.append('capa', true);
         formData.append('ordem', formulario.ordem);
 
-        const response = await fetch('https://imobiliaria-be.fly.dev/api/fotos-imoveis/upload', {
+        const response = await fetch('https://imobiliaria.fly.dev/api/fotos-imoveis/upload', {
           method: 'POST',
           body: formData
         });
@@ -97,9 +94,6 @@ function PaginaFotos() {
     }
   };
 
-  /**
-   * Exclui uma foto após confirmação
-   */
   const deletarFoto = async (id) => {
     if (confirm('Deseja excluir esta foto?')) {
       try {
@@ -217,7 +211,7 @@ function PaginaFotos() {
             {formulario.id ? 'Editar Foto' : 'Nova Foto'}
           </h2>
           <form onSubmit={salvarFoto}>
-            {/* Upload de Imagem */}
+            {}
             {!formulario.id && (
               <div className="form-group">
                 <label className="form-label">Selecionar Imagem</label>
@@ -259,7 +253,7 @@ function PaginaFotos() {
               </div>
             )}
 
-            {/* Preview da imagem em edição */}
+            {}
             {formulario.id && previewUrl && (
               <div className="form-group">
                 <label className="form-label">Imagem Atual</label>
