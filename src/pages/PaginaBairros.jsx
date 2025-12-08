@@ -6,11 +6,6 @@ import useToast from '../hooks/useToast';
 import ToastContainer from '../components/ToastContainer';
 
 function PaginaBairros() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.tipo === 'cliente') {
-    return <div style={{ padding: '20px' }}>Acesso negado.</div>;
-  }
-
   const [modo, setModo] = useState('lista');
   const [bairros, setBairros] = useState([]);
   const [formulario, setFormulario] = useState({ nome: '', cidade: 'Panambi', estado: 'RS' });
