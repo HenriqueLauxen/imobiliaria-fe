@@ -31,8 +31,9 @@ function PaginaFotos() {
         api.get('/api/fotos-imoveis'),
         api.get('/api/imoveis')
       ]);
-      setFotos(fotosData);
       setImoveis(imoveisData);
+      const visibleFotos = fotosData.filter(f => imoveisData.some(i => i.id === f.imovel?.id));
+      setFotos(visibleFotos);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       showToast('Erro ao carregar dados. Tente novamente.', 'error');
@@ -67,18 +68,10 @@ function PaginaFotos() {
         const formData = new FormData();
         formData.append('file', arquivo);
         formData.append('imovelId', formulario.imovelId);
-        formData.append('capa', true);
+        formData.append('capa', formulario.capa);
         formData.append('ordem', formulario.ordem);
 
-        const response = await fetch('https://imobiliaria.fly.dev/api/fotos-imoveis/upload', {
-          method: 'POST',
-          body: formData
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || 'Erro ao fazer upload');
-        }
+        await api.upload('/api/fotos-imoveis/upload', formData);
       }
       
       await carregarDados();

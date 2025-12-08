@@ -6,6 +6,11 @@ import useToast from '../hooks/useToast';
 import ToastContainer from '../components/ToastContainer';
 
 function PaginaUsuarios() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.tipo !== 'administrador') {
+    return <div style={{ padding: '20px' }}>Acesso negado. Apenas administradores.</div>;
+  }
+
   const [modo, setModo] = useState('lista');
   const [usuarios, setUsuarios] = useState([]);
   const [formulario, setFormulario] = useState({ nome: '', email: '', senha: '', tipo: '' });

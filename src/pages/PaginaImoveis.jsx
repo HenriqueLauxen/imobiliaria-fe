@@ -6,6 +6,7 @@ import useToast from '../hooks/useToast';
 import ToastContainer from '../components/ToastContainer';
 
 function PaginaImoveis() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [modo, setModo] = useState('lista');
   
   const [bairros, setBairros] = useState([]);
@@ -162,7 +163,7 @@ function PaginaImoveis() {
       <div className="page-container">
       <div className="page-header">
         <h1 className="page-title">Imóveis</h1>
-        {modo === 'lista' && (
+        {modo === 'lista' && user.tipo !== 'CLIENTE' && (
           <button 
             onClick={() => setModo('formulario')}
             className="btn btn-primary"
@@ -213,6 +214,7 @@ function PaginaImoveis() {
                     >
                       <Pencil size={16} />
                     </button>
+                    {user.tipo !== 'CLIENTE' && (
                     <button 
                       onClick={() => deletarImovel(imovel.id)} 
                       className="property-action-btn delete" 
@@ -220,6 +222,7 @@ function PaginaImoveis() {
                     >
                       <Trash2 size={16} />
                     </button>
+                    )}
                   </div>
                 </div>
 

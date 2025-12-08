@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Users, MapPin, Tags, Home, Image, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Users, MapPin, Tags, Home, Image, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 
 function BarraLateral() {
   const location = useLocation();
@@ -18,9 +18,14 @@ function BarraLateral() {
     return location.pathname === path;
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    window.location.reload();
+  };
+
   return (
     <>
-      {}
+      {/* Mobile toggle button */}
       <button 
         className="sidebar-toggle"
         onClick={() => setIsOpen(!isOpen)}
@@ -29,7 +34,7 @@ function BarraLateral() {
         {isOpen ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
       </button>
 
-      {}
+      {/* Overlay for mobile */}
       {isOpen && (
         <div 
           className="sidebar-overlay" 
@@ -55,6 +60,23 @@ function BarraLateral() {
               {item.label}
             </Link>
           ))}
+
+          <button
+            className="nav-link"
+            onClick={handleLogout}
+            style={{ 
+              marginTop: 'auto', 
+              background: 'transparent', 
+              border: 'none', 
+              width: '100%', 
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: '0.95rem'
+            }}
+          >
+            <LogOut size={20} />
+            Sair
+          </button>
         </nav>
       </div>
     </>

@@ -6,6 +6,11 @@ import useToast from '../hooks/useToast';
 import ToastContainer from '../components/ToastContainer';
 
 function PaginaTiposImoveis() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.tipo === 'CLIENTE') {
+    return <div style={{ padding: '20px' }}>Acesso negado.</div>;
+  }
+
   const [modo, setModo] = useState('lista');
   const [tipos, setTipos] = useState([]);
   const [formulario, setFormulario] = useState({ nome: '', descricao: '' });
