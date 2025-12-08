@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Pencil, Trash2, Upload } from 'lucide-react';
 import api from '../services/api';
 import Loading from '../components/Loading';
+import useToast from '../hooks/useToast';
+import ToastContainer from '../components/ToastContainer';
 
 function PaginaFotos() {
   const [modo, setModo] = useState('lista');
@@ -16,11 +18,15 @@ function PaginaFotos() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
     carregarDados();
   }, []);
 
+  /**
+   * Carrega fotos e imóveis disponíveis
+   */
   const carregarDados = async () => {
     try {
       setLoading(true);
@@ -32,6 +38,7 @@ function PaginaFotos() {
       setImoveis(imoveisData);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
+      showToast('Erro ao carregar dados. Tente novamente.', 'error');
     } finally {
       setLoading(false);
     }
@@ -54,7 +61,6 @@ function PaginaFotos() {
       setUploading(true);
       
       if (formulario.id) {
-        // Edição - atualiza apenas metadados
         const payload = {
           ...formulario,
           imovel: imoveis.find(i => i.id == formulario.imovelId)
@@ -91,13 +97,18 @@ function PaginaFotos() {
     }
   };
 
+  /**
+   * Exclui uma foto após confirmação
+   */
   const deletarFoto = async (id) => {
     if (confirm('Deseja excluir esta foto?')) {
       try {
         await api.delete(`/api/fotos-imoveis/${id}`);
+        showToast('Foto excluída com sucesso!', 'success');
         await carregarDados();
       } catch (error) {
-        alert('Erro ao excluir foto');
+        console.error('Erro ao excluir foto:', error);
+        showToast('Erro ao excluir foto. Tente novamente.', 'error');
       }
     }
   };
@@ -115,14 +126,24 @@ function PaginaFotos() {
     setModo('formulario');
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setArquivo(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8 border-b border-[#0B132B]/10 pb-4">
-        <h1 className="text-3xl font-light text-[#0B132B]">Galeria de Fotos</h1>
+    <>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">Galeria de Fotos</h1>
         {modo === 'lista' && (
           <button 
             onClick={() => setModo('formulario')}
-            className="px-4 py-2 rounded-md bg-[#0B132B] text-[#FFFFE4] hover:bg-[#0B132B]/90 transition shadow-lg"
+            className="btn btn-primary"
           >
             + Adicionar Foto
           </button>
@@ -130,7 +151,7 @@ function PaginaFotos() {
         {modo === 'formulario' && (
           <button 
             onClick={() => setModo('lista')}
-            className="px-4 py-2 rounded-md border border-[#0B132B] text-[#0B132B] hover:bg-[#0B132B] hover:text-[#FFFFE4] transition"
+            className="btn btn-secondary"
           >
             Voltar
           </button>
@@ -141,80 +162,90 @@ function PaginaFotos() {
         <Loading mensagem="Carregando fotos..." />
       ) : modo === 'lista' ? (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid-cards">
             {fotos.map((foto) => (
-              <div key={foto.id} className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-[#0B132B]/10">
-                {foto.caminho ? (
-                  <img 
-                    src={foto.caminho} 
-                    alt={foto.nomeArquivo}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-gray-200">
-                    <span className="text-sm font-medium">{foto.nomeArquivo}</span>
-                    <span className="text-xs mt-1">Imóvel: {foto.imovel?.titulo || 'N/A'}</span>
+              <div key={foto.id} className="card">
+                <div style={{ position: 'relative', aspectRatio: '1/1', backgroundColor: '#f3f4f6', overflow: 'hidden' }}>
+                  {foto.caminho ? (
+                    <img 
+                      src={foto.caminho} 
+                      alt={foto.nomeArquivo}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', backgroundColor: '#e5e7eb' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{foto.nomeArquivo}</span>
+                      <span style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>Imóvel: {foto.imovel?.titulo || 'N/A'}</span>
+                    </div>
+                  )}
+                  {foto.capa && (
+                    <span className="badge" style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', backgroundColor: 'var(--primary)', color: 'var(--surface)' }}>
+                      Capa
+                    </span>
+                  )}
+                  <div className="card-actions-overlay">
+                    <button 
+                      onClick={() => editarFoto(foto)}
+                      className="btn-icon"
+                      title="Editar"
+                      style={{ color: 'white' }}
+                    >
+                      <Pencil size={24} />
+                    </button>
+                    <button 
+                      onClick={() => deletarFoto(foto.id)}
+                      className="btn-icon delete"
+                      title="Excluir"
+                      style={{ color: 'white' }}
+                    >
+                      <Trash2 size={24} />
+                    </button>
                   </div>
-                )}
-                {foto.capa && (
-                  <span className="absolute top-2 left-2 bg-[#0B132B] text-[#FFFFE4] text-xs px-2 py-1 rounded">
-                    Capa
-                  </span>
-                )}
-                <div className="absolute inset-0 bg-[#0B132B]/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                  <button 
-                    onClick={() => editarFoto(foto)}
-                    className="text-[#FFFFE4] hover:scale-110 transition"
-                    title="Editar"
-                  >
-                    <Pencil size={32} />
-                  </button>
-                  <button 
-                    onClick={() => deletarFoto(foto.id)}
-                    className="text-[#FFFFE4] hover:scale-110 transition"
-                    title="Excluir"
-                  >
-                    <Trash2 size={32} />
-                  </button>
                 </div>
               </div>
             ))}
           </div>
           {fotos.length === 0 && (
-            <div className="text-center py-12 text-[#0B132B]/50">
+            <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-muted)' }}>
               Nenhuma foto cadastrada. Clique em "+ Adicionar Foto" para começar.
             </div>
           )}
         </>
       ) : (
-        <div className="max-w-xl mx-auto bg-white p-8 rounded-lg border border-[#0B132B]/10 shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 text-[#0B132B]">
+        <div className="card form-container">
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--primary)' }}>
             {formulario.id ? 'Editar Foto' : 'Nova Foto'}
           </h2>
-          <form onSubmit={salvarFoto} className="space-y-6">
+          <form onSubmit={salvarFoto}>
             {/* Upload de Imagem */}
             {!formulario.id && (
-              <div>
-                <label className="block text-sm font-medium text-[#0B132B] mb-2">Selecionar Imagem</label>
+              <div className="form-group">
+                <label className="form-label">Selecionar Imagem</label>
                 <div 
-                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-                    ${previewUrl ? 'border-[#0B132B]' : 'border-[#0B132B]/20 hover:border-[#0B132B]/50'}`}
+                  style={{ 
+                    border: `2px dashed ${previewUrl ? 'var(--primary)' : 'var(--border)'}`, 
+                    borderRadius: 'var(--radius)', 
+                    padding: '1.5rem', 
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'border-color 0.2s'
+                  }}
                   onClick={() => document.getElementById('fileInput').click()}
                 >
                   {previewUrl ? (
-                    <div className="relative">
+                    <div style={{ position: 'relative' }}>
                       <img 
                         src={previewUrl} 
                         alt="Preview" 
-                        className="max-h-48 mx-auto rounded-md object-contain"
+                        style={{ maxHeight: '12rem', margin: '0 auto', borderRadius: 'var(--radius)', objectFit: 'contain' }}
                       />
-                      <p className="mt-2 text-sm text-[#0B132B]/60">{arquivo?.name}</p>
+                      <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{arquivo?.name}</p>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-2 text-[#0B132B]/50">
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
                       <Upload size={40} />
-                      <p className="text-sm">Clique para selecionar uma imagem</p>
-                      <p className="text-xs">JPG, PNG ou GIF (máx. 5MB)</p>
+                      <p style={{ fontSize: '0.875rem' }}>Clique para selecionar uma imagem</p>
+                      <p style={{ fontSize: '0.75rem' }}>JPG, PNG ou GIF (máx. 5MB)</p>
                     </div>
                   )}
                 </div>
@@ -222,38 +253,32 @@ function PaginaFotos() {
                   id="fileInput"
                   type="file" 
                   accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setArquivo(file);
-                      setPreviewUrl(URL.createObjectURL(file));
-                    }
-                  }}
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
                 />
               </div>
             )}
 
             {/* Preview da imagem em edição */}
             {formulario.id && previewUrl && (
-              <div>
-                <label className="block text-sm font-medium text-[#0B132B] mb-2">Imagem Atual</label>
-                <div className="border border-[#0B132B]/20 rounded-lg p-4 text-center">
+              <div className="form-group">
+                <label className="form-label">Imagem Atual</label>
+                <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '1rem', textAlign: 'center' }}>
                   <img 
                     src={previewUrl} 
                     alt="Imagem atual" 
-                    className="max-h-48 mx-auto rounded-md object-contain"
+                    style={{ maxHeight: '12rem', margin: '0 auto', borderRadius: 'var(--radius)', objectFit: 'contain' }}
                   />
-                  <p className="mt-2 text-sm text-[#0B132B]/60">{formulario.nomeArquivo}</p>
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>{formulario.nomeArquivo}</p>
                 </div>
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-[#0B132B] mb-2">Imóvel</label>
+            <div className="form-group">
+              <label className="form-label">Imóvel</label>
               <select 
                 required
-                className="w-full border border-[#0B132B]/20 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#0B132B] transition bg-white"
+                className="form-select"
                 value={formulario.imovelId || ''}
                 onChange={e => setFormulario({...formulario, imovelId: e.target.value})}
               >
@@ -261,7 +286,7 @@ function PaginaFotos() {
                 {imoveis.map(i => <option key={i.id} value={i.id}>{i.titulo}</option>)}
               </select>
             </div>
-            <div className="pt-4 flex justify-end gap-4">
+            <div className="form-actions">
               <button 
                 type="button"
                 onClick={() => {
@@ -270,18 +295,19 @@ function PaginaFotos() {
                   setArquivo(null);
                   setPreviewUrl(null);
                 }}
-                className="px-6 py-2 rounded-md border border-[#0B132B]/20 text-[#0B132B] hover:bg-gray-50 transition"
+                className="btn btn-secondary"
               >
                 Cancelar
               </button>
               <button 
                 type="submit"
                 disabled={uploading}
-                className="px-6 py-2 rounded-md bg-[#0B132B] text-[#FFFFE4] hover:bg-[#0B132B]/90 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="btn btn-primary"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: uploading ? 0.7 : 1 }}
               >
                 {uploading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-[#FFFFE4]/30 border-t-[#FFFFE4] rounded-full animate-spin"></div>
+                    <div className="spinner-small"></div>
                     Enviando...
                   </>
                 ) : (
@@ -292,7 +318,8 @@ function PaginaFotos() {
           </form>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

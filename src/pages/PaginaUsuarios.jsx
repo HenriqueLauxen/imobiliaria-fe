@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import Loading from '../components/Loading';
+import useToast from '../hooks/useToast';
+import ToastContainer from '../components/ToastContainer';
 
 function PaginaUsuarios() {
   const [modo, setModo] = useState('lista');
   const [usuarios, setUsuarios] = useState([]);
   const [formulario, setFormulario] = useState({ nome: '', email: '', senha: '', tipo: '' });
   const [loading, setLoading] = useState(true);
+
+  const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
     carregarUsuarios();
@@ -20,6 +24,7 @@ function PaginaUsuarios() {
       setUsuarios(dados);
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
+      showToast('Erro ao carregar usuários. Tente novamente.', 'error');
     } finally {
       setLoading(false);
     }
@@ -29,33 +34,36 @@ function PaginaUsuarios() {
     e.preventDefault();
     
     if (!formulario.nome.trim()) {
-      alert('O campo Nome é obrigatório');
+      showToast('O campo Nome é obrigatório', 'error');
       return;
     }
     if (!formulario.email.trim()) {
-      alert('O campo Email é obrigatório');
+      showToast('O campo Email é obrigatório', 'error');
       return;
     }
     if (!formulario.id && !formulario.senha.trim()) {
-      alert('O campo Senha é obrigatório');
+      showToast('O campo Senha é obrigatório', 'error');
       return;
     }
     if (!formulario.tipo) {
-      alert('Selecione um Tipo de usuário');
+      showToast('Selecione um Tipo de usuário', 'error');
       return;
     }
     
     try {
       if (formulario.id) {
         await api.put(`/api/usuarios/${formulario.id}`, formulario);
+        showToast('Usuário atualizado com sucesso!', 'success');
       } else {
         await api.post('/api/usuarios', formulario);
+        showToast('Usuário cadastrado com sucesso!', 'success');
       }
       await carregarUsuarios();
       setModo('lista');
       setFormulario({ nome: '', email: '', senha: '', tipo: '' });
     } catch (error) {
-      alert('Erro ao salvar usuário');
+      console.error('Erro ao salvar usuário:', error);
+      showToast('Erro ao salvar usuário. Verifique os dados e tente novamente.', 'error');
     }
   };
 
@@ -63,9 +71,11 @@ function PaginaUsuarios() {
     if (confirm('Tem certeza que deseja excluir este usuário?')) {
       try {
         await api.delete(`/api/usuarios/${id}`);
+        showToast('Usuário excluído com sucesso!', 'success');
         await carregarUsuarios();
       } catch (error) {
-        alert('Erro ao excluir usuário');
+        console.error('Erro ao excluir usuário:', error);
+        showToast('Erro ao excluir usuário. Tente novamente.', 'error');
       }
     }
   };
@@ -76,13 +86,15 @@ function PaginaUsuarios() {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8 border-b border-[#0B132B]/10 pb-4">
-        <h1 className="text-3xl font-light text-[#0B132B]">Gerenciar Usuários</h1>
+    <>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Gerenciar Usuários</h1>
         {modo === 'lista' && (
           <button 
             onClick={() => setModo('formulario')}
-            className="px-4 py-2 rounded-md bg-[#0B132B] text-[#FFFFE4] hover:bg-[#0B132B]/90 transition shadow-lg"
+            className="btn btn-primary"
           >
             + Novo Usuário
           </button>
@@ -90,7 +102,7 @@ function PaginaUsuarios() {
         {modo === 'formulario' && (
           <button 
             onClick={() => setModo('lista')}
-            className="px-4 py-2 rounded-md border border-[#0B132B] text-[#0B132B] hover:bg-[#0B132B] hover:text-[#FFFFE4] transition"
+            className="btn btn-secondary"
           >
             Voltar para Lista
           </button>
@@ -100,36 +112,36 @@ function PaginaUsuarios() {
       {loading ? (
         <Loading mensagem="Carregando usuários..." />
       ) : modo === 'lista' ? (
-        <div className="bg-white rounded-lg border border-[#0B132B]/10 overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-[#0B132B]/5 text-[#0B132B]">
+        <div className="card table-container">
+          <table className="table">
+            <thead>
               <tr>
-                <th className="p-4 font-semibold">Nome</th>
-                <th className="p-4 font-semibold">Email</th>
-                <th className="p-4 font-semibold">Tipo</th>
-                <th className="p-4 font-semibold text-right">Ações</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Tipo</th>
+                <th className="text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#0B132B]/10">
+            <tbody>
               {usuarios.map((usuario) => (
-                <tr key={usuario.id} className="hover:bg-[#FFFFE4]/30 transition">
-                  <td className="p-4">{usuario.nome}</td>
-                  <td className="p-4 text-[#0B132B]/70">{usuario.email}</td>
-                  <td className="p-4">
-                    <span className="px-2 py-1 text-xs font-medium bg-[#0B132B]/10 rounded-full">
+                <tr key={usuario.id}>
+                  <td>{usuario.nome}</td>
+                  <td style={{ color: 'var(--text-muted)' }}>{usuario.email}</td>
+                  <td>
+                    <span className="badge">
                       {usuario.tipo}
                     </span>
                   </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button onClick={() => editarUsuario(usuario)} className="text-blue-600 hover:underline text-sm" title="Editar">
-                      <Pencil size={18} className="inline" />
+                  <td className="text-right">
+                    <button onClick={() => editarUsuario(usuario)} className="btn-icon" title="Editar">
+                      <Pencil size={18} />
                     </button>
                     <button 
                       onClick={() => deletarUsuario(usuario.id)}
-                      className="text-red-600 hover:underline text-sm"
+                      className="btn-icon delete"
                       title="Excluir"
                     >
-                      <Trash2 size={18} className="inline" />
+                      <Trash2 size={18} />
                     </button>
                   </td>
                 </tr>
@@ -138,47 +150,47 @@ function PaginaUsuarios() {
           </table>
         </div>
       ) : (
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg border border-[#0B132B]/10 shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 text-[#0B132B]">Cadastrar Novo Usuário</h2>
-          <form onSubmit={salvarUsuario} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-[#0B132B] mb-2">Nome Completo</label>
+        <div className="card form-container">
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--primary)' }}>Cadastrar Novo Usuário</h2>
+          <form onSubmit={salvarUsuario}>
+            <div className="form-group">
+              <label className="form-label">Nome Completo</label>
               <input 
                 type="text" 
                 required
-                className="w-full border border-[#0B132B]/20 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#0B132B] focus:border-transparent transition"
+                className="form-input"
                 value={formulario.nome}
                 onChange={e => setFormulario({...formulario, nome: e.target.value})}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[#0B132B] mb-2">Email Corporativo</label>
+            <div className="form-group">
+              <label className="form-label">Email Corporativo</label>
               <input 
                 type="email" 
                 required
-                className="w-full border border-[#0B132B]/20 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#0B132B] focus:border-transparent transition"
+                className="form-input"
                 value={formulario.email}
                 onChange={e => setFormulario({...formulario, email: e.target.value})}
               />
             </div>
             {!formulario.id && (
-              <div>
-                <label className="block text-sm font-medium text-[#0B132B] mb-2">Senha</label>
+              <div className="form-group">
+                <label className="form-label">Senha</label>
                 <input 
                   type="password" 
                   required
-                  className="w-full border border-[#0B132B]/20 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#0B132B] focus:border-transparent transition"
+                  className="form-input"
                   value={formulario.senha}
                   onChange={e => setFormulario({...formulario, senha: e.target.value})}
                   placeholder="Mínimo 6 caracteres"
                 />
               </div>
             )}
-            <div>
-              <label className="block text-sm font-medium text-[#0B132B] mb-2">Tipo</label>
+            <div className="form-group">
+              <label className="form-label">Tipo</label>
               <select 
                 required
-                className="w-full border border-[#0B132B]/20 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#0B132B] focus:border-transparent transition bg-white"
+                className="form-select"
                 value={formulario.tipo}
                 onChange={e => setFormulario({...formulario, tipo: e.target.value})}
               >
@@ -188,17 +200,17 @@ function PaginaUsuarios() {
                 <option value="cliente">Cliente</option>
               </select>
             </div>
-            <div className="pt-4 flex justify-end gap-4">
+            <div className="form-actions">
               <button 
                 type="button"
                 onClick={() => setModo('lista')}
-                className="px-6 py-2 rounded-md border border-[#0B132B]/20 text-[#0B132B] hover:bg-gray-50 transition"
+                className="btn btn-secondary"
               >
                 Cancelar
               </button>
               <button 
                 type="submit"
-                className="px-6 py-2 rounded-md bg-[#0B132B] text-[#FFFFE4] hover:bg-[#0B132B]/90 transition shadow-md"
+                className="btn btn-primary"
               >
                 Salvar Usuário
               </button>
@@ -206,7 +218,8 @@ function PaginaUsuarios() {
           </form>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

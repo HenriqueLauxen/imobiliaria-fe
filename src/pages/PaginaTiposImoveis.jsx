@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import Loading from '../components/Loading';
+import useToast from '../hooks/useToast';
+import ToastContainer from '../components/ToastContainer';
 
 function PaginaTiposImoveis() {
   const [modo, setModo] = useState('lista');
   const [tipos, setTipos] = useState([]);
   const [formulario, setFormulario] = useState({ nome: '', descricao: '' });
   const [loading, setLoading] = useState(true);
+  const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
     carregarTipos();
@@ -20,6 +23,7 @@ function PaginaTiposImoveis() {
       setTipos(dados);
     } catch (error) {
       console.error("Erro ao carregar tipos:", error);
+      showToast('Erro ao carregar tipos de imóveis. Tente novamente.', 'error');
     } finally {
       setLoading(false);
     }
@@ -29,21 +33,24 @@ function PaginaTiposImoveis() {
     e.preventDefault();
     
     if (!formulario.nome.trim()) {
-      alert('O campo Nome é obrigatório');
+      showToast('O campo Nome é obrigatório', 'error');
       return;
     }
     
     try {
       if (formulario.id) {
         await api.put(`/api/tipos-imoveis/${formulario.id}`, formulario);
+        showToast('Tipo de imóvel atualizado com sucesso!', 'success');
       } else {
         await api.post('/api/tipos-imoveis', formulario);
+        showToast('Tipo de imóvel cadastrado com sucesso!', 'success');
       }
       await carregarTipos();
       setModo('lista');
       setFormulario({ nome: '', descricao: '' });
     } catch (error) {
-      alert('Erro ao salvar tipo de imóvel');
+      console.error('Erro ao salvar tipo:', error);
+      showToast('Erro ao salvar tipo de imóvel. Tente novamente.', 'error');
     }
   };
 
@@ -51,9 +58,11 @@ function PaginaTiposImoveis() {
     if (confirm('Tem certeza que deseja excluir este tipo de imóvel?')) {
       try {
         await api.delete(`/api/tipos-imoveis/${id}`);
+        showToast('Tipo de imóvel excluído com sucesso!', 'success');
         await carregarTipos();
       } catch (error) {
-        alert('Erro ao excluir tipo de imóvel');
+        console.error('Erro ao excluir tipo:', error);
+        showToast('Erro ao excluir tipo de imóvel. Tente novamente.', 'error');
       }
     }
   };
@@ -64,13 +73,15 @@ function PaginaTiposImoveis() {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8 border-b border-[#0B132B]/10 pb-4">
-        <h1 className="text-3xl font-light text-[#0B132B]">Tipos de Imóvel</h1>
+    <>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">Tipos de Imóvel</h1>
         {modo === 'lista' && (
           <button 
             onClick={() => setModo('formulario')}
-            className="px-4 py-2 rounded-md bg-[#0B132B] text-[#FFFFE4] hover:bg-[#0B132B]/90 transition shadow-lg"
+            className="btn btn-primary"
           >
             + Novo Tipo
           </button>
@@ -78,7 +89,7 @@ function PaginaTiposImoveis() {
         {modo === 'formulario' && (
           <button 
             onClick={() => setModo('lista')}
-            className="px-4 py-2 rounded-md border border-[#0B132B] text-[#0B132B] hover:bg-[#0B132B] hover:text-[#FFFFE4] transition"
+            className="btn btn-secondary"
           >
             Voltar
           </button>
@@ -88,19 +99,23 @@ function PaginaTiposImoveis() {
       {loading ? (
         <Loading mensagem="Carregando tipos de imóvel..." />
       ) : modo === 'lista' ? (
-        <div className="bg-white rounded-lg border border-[#0B132B]/10 overflow-hidden">
-          <ul className="divide-y divide-[#0B132B]/10">
+        <div className="card">
+          <ul style={{ listStyle: 'none' }}>
             {tipos.map((tipo) => (
-              <li key={tipo.id} className="p-6 hover:bg-[#FFFFE4]/30 transition flex justify-between items-center group">
+              <li key={tipo.id} style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 className="text-lg font-semibold text-[#0B132B]">{tipo.nome}</h3>
-                  <p className="text-sm text-[#0B132B]/60 mt-1">{tipo.descricao}</p>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--primary)' }}>{tipo.nome}</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>{tipo.descricao}</p>
                 </div>
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-4">
-                  <button onClick={() => editarTipo(tipo)} className="text-blue-600 hover:underline text-sm font-medium" title="Editar">
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => editarTipo(tipo)} className="btn-icon" title="Editar">
                     <Pencil size={18} />
                   </button>
-                  <button onClick={() => deletarTipo(tipo.id)} className="text-red-600 hover:underline text-sm font-medium" title="Excluir">
+                  <button 
+                    onClick={() => deletarTipo(tipo.id)}
+                    className="btn-icon delete"
+                    title="Excluir"
+                  >
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -109,48 +124,51 @@ function PaginaTiposImoveis() {
           </ul>
         </div>
       ) : (
-        <div className="max-w-xl mx-auto bg-white p-8 rounded-lg border border-[#0B132B]/10 shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 text-[#0B132B]">Cadastrar Tipo</h2>
-          <form onSubmit={salvarTipo} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-[#0B132B] mb-2">Nome do Tipo</label>
+        <div className="card form-container">
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: 'var(--primary)' }}>
+            {formulario.id ? 'Editar Tipo' : 'Novo Tipo'}
+          </h2>
+          <form onSubmit={salvarTipo}>
+            <div className="form-group">
+              <label className="form-label">Nome do Tipo</label>
               <input 
                 type="text" 
                 required
-                className="w-full border border-[#0B132B]/20 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#0B132B] transition"
+                className="form-input"
                 value={formulario.nome}
                 onChange={e => setFormulario({...formulario, nome: e.target.value})}
-                placeholder="Ex: Duplex"
+                placeholder="Ex: Apartamento, Casa, Terreno..."
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[#0B132B] mb-2">Descrição</label>
+            <div className="form-group">
+              <label className="form-label">Descrição</label>
               <textarea 
-                className="w-full border border-[#0B132B]/20 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#0B132B] transition h-32 resize-none"
+                className="form-input"
                 value={formulario.descricao}
                 onChange={e => setFormulario({...formulario, descricao: e.target.value})}
-                placeholder="Breve descrição..."
+                rows="3"
               />
             </div>
-            <div className="pt-4 flex justify-end gap-4">
+            <div className="form-actions">
               <button 
                 type="button"
                 onClick={() => setModo('lista')}
-                className="px-6 py-2 rounded-md border border-[#0B132B]/20 text-[#0B132B] hover:bg-gray-50 transition"
+                className="btn btn-secondary"
               >
                 Cancelar
               </button>
               <button 
                 type="submit"
-                className="px-6 py-2 rounded-md bg-[#0B132B] text-[#FFFFE4] hover:bg-[#0B132B]/90 transition shadow-md"
+                className="btn btn-primary"
               >
-                Salvar
+                Salvar Tipo
               </button>
             </div>
           </form>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

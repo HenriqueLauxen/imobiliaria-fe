@@ -9,21 +9,19 @@ import PaginaFotos from './pages/PaginaFotos';
 
 function App() {
   return (
-    <div className="flex min-h-screen bg-[#FFFFE4]">
+    <div className="app-container">
       <BarraLateral />
       
-      <main className="flex-1 ml-64 p-8">
-        <div className="max-w-7xl mx-auto">
-          <Routes>
-            <Route path="/" element={<Navigate to="/imoveis" replace />} />
-            <Route path="/usuarios" element={<PaginaUsuarios />} />
-            <Route path="/bairros" element={<PaginaBairros />} />
-            <Route path="/tipos" element={<PaginaTiposImoveis />} />
-            <Route path="/imoveis" element={<PaginaImoveis />} />
-            <Route path="/fotos" element={<PaginaFotos />} />
-            <Route path="*" element={<Navigate to="/imoveis" replace />} />
-          </Routes>
-        </div>
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Navigate to="/imoveis" replace />} />
+          <Route path="/usuarios" element={<PaginaUsuarios />} />
+          <Route path="/bairros" element={<PaginaBairros />} />
+          <Route path="/tipos" element={<PaginaTiposImoveis />} />
+          <Route path="/imoveis" element={<PaginaImoveis />} />
+          <Route path="/fotos" element={<PaginaFotos />} />
+          <Route path="*" element={<Navigate to="/imoveis" replace />} />
+        </Routes>
       </main>
     </div>
   );
