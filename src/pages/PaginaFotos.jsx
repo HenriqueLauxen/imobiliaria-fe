@@ -25,8 +25,8 @@ function PaginaFotos() {
     try {
       setLoading(true);
       const [fotosData, imoveisData] = await Promise.all([
-        api.get('/fotos'),
-        api.get('/imoveis')
+        api.get('/api/fotos-imoveis'),
+        api.get('/api/imoveis')
       ]);
       setFotos(fotosData);
       setImoveis(imoveisData);
@@ -59,7 +59,7 @@ function PaginaFotos() {
           ...formulario,
           imovel: imoveis.find(i => i.id == formulario.imovelId)
         };
-        await api.put(`/fotos/${formulario.id}`, payload);
+        await api.put(`/api/fotos-imoveis/${formulario.id}`, payload);
       } else {
         const formData = new FormData();
         formData.append('file', arquivo);
@@ -67,7 +67,7 @@ function PaginaFotos() {
         formData.append('capa', true);
         formData.append('ordem', formulario.ordem);
 
-        const response = await fetch('/api/fotos/upload', {
+        const response = await fetch('https://imobiliaria-be.fly.dev/api/fotos-imoveis/upload', {
           method: 'POST',
           body: formData
         });
@@ -94,7 +94,7 @@ function PaginaFotos() {
   const deletarFoto = async (id) => {
     if (confirm('Deseja excluir esta foto?')) {
       try {
-        await api.delete(`/fotos/${id}`);
+        await api.delete(`/api/fotos-imoveis/${id}`);
         await carregarDados();
       } catch (error) {
         alert('Erro ao excluir foto');

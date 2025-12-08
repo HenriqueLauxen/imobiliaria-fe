@@ -16,7 +16,7 @@ function PaginaTiposImoveis() {
   const carregarTipos = async () => {
     try {
       setLoading(true);
-      const dados = await api.get('/tiposimoveis');
+      const dados = await api.get('/api/tipos-imoveis');
       setTipos(dados);
     } catch (error) {
       console.error("Erro ao carregar tipos:", error);
@@ -35,9 +35,9 @@ function PaginaTiposImoveis() {
     
     try {
       if (formulario.id) {
-        await api.put(`/tiposimoveis/${formulario.id}`, formulario);
+        await api.put(`/api/tipos-imoveis/${formulario.id}`, formulario);
       } else {
-        await api.post('/tiposimoveis', formulario);
+        await api.post('/api/tipos-imoveis', formulario);
       }
       await carregarTipos();
       setModo('lista');
@@ -48,9 +48,9 @@ function PaginaTiposImoveis() {
   };
 
   const deletarTipo = async (id) => {
-    if (confirm('Deseja excluir este tipo de imóvel?')) {
+    if (confirm('Tem certeza que deseja excluir este tipo de imóvel?')) {
       try {
-        await api.delete(`/tiposimoveis/${id}`);
+        await api.delete(`/api/tipos-imoveis/${id}`);
         await carregarTipos();
       } catch (error) {
         alert('Erro ao excluir tipo de imóvel');

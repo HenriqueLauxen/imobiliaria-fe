@@ -16,7 +16,7 @@ function PaginaBairros() {
   const carregarBairros = async () => {
     try {
       setLoading(true);
-      const dados = await api.get('/bairros');
+      const dados = await api.get('/api/bairros');
       setBairros(dados);
     } catch (error) {
       console.error("Erro ao carregar bairros:", error);
@@ -43,9 +43,9 @@ function PaginaBairros() {
     
     try {
       if (formulario.id) {
-        await api.put(`/bairros/${formulario.id}`, formulario);
+        await api.put(`/api/bairros/${formulario.id}`, formulario);
       } else {
-        await api.post('/bairros', formulario);
+        await api.post('/api/bairros', formulario);
       }
       await carregarBairros();
       setModo('lista');

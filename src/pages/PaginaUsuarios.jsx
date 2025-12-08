@@ -16,7 +16,7 @@ function PaginaUsuarios() {
   const carregarUsuarios = async () => {
     try {
       setLoading(true);
-      const dados = await api.get('/usuarios');
+      const dados = await api.get('/api/usuarios');
       setUsuarios(dados);
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
@@ -47,9 +47,9 @@ function PaginaUsuarios() {
     
     try {
       if (formulario.id) {
-        await api.put(`/usuarios/${formulario.id}`, formulario);
+        await api.put(`/api/usuarios/${formulario.id}`, formulario);
       } else {
-        await api.post('/usuarios', formulario);
+        await api.post('/api/usuarios', formulario);
       }
       await carregarUsuarios();
       setModo('lista');
@@ -62,7 +62,7 @@ function PaginaUsuarios() {
   const deletarUsuario = async (id) => {
     if (confirm('Tem certeza que deseja excluir este usuário?')) {
       try {
-        await api.delete(`/usuarios/${id}`);
+        await api.delete(`/api/usuarios/${id}`);
         await carregarUsuarios();
       } catch (error) {
         alert('Erro ao excluir usuário');

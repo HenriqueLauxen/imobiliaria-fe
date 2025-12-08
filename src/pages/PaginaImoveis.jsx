@@ -42,10 +42,10 @@ function PaginaImoveis() {
     try {
       setLoading(true);
       const [imoveisData, bairrosData, tiposData, fotosData] = await Promise.all([
-        api.get('/imoveis'),
-        api.get('/bairros'),
-        api.get('/tiposimoveis'),
-        api.get('/fotos')
+        api.get('/api/imoveis'),
+        api.get('/api/bairros'),
+        api.get('/api/tipos-imoveis'),
+        api.get('/api/fotos-imoveis')
       ]);
       setImoveis(imoveisData);
       setBairros(bairrosData);
@@ -88,9 +88,9 @@ function PaginaImoveis() {
       };
 
       if (formulario.id) {
-        await api.put(`/imoveis/${formulario.id}`, payload);
+        await api.put(`/api/imoveis/${formulario.id}`, payload);
       } else {
-        await api.post('/imoveis', payload);
+        await api.post('/api/imoveis', payload);
       }
       await carregarDados();
       setModo('lista');
@@ -123,7 +123,7 @@ function PaginaImoveis() {
   const deletarImovel = async (id) => {
     if (confirm('Tem certeza?')) {
       try {
-        await api.delete(`/imoveis/${id}`);
+        await api.delete(`/api/imoveis/${id}`);
         await carregarDados();
       } catch (error) {
         alert('Erro ao excluir imóvel');
