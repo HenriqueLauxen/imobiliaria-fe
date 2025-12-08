@@ -20,7 +20,7 @@ function BarraLateral() {
 
   return (
     <>
-      {/* Botão toggle para mobile */}
+      {}
       <button 
         className="sidebar-toggle"
         onClick={() => setIsOpen(!isOpen)}
@@ -29,7 +29,7 @@ function BarraLateral() {
         {isOpen ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
       </button>
 
-      {/* Fechar sidebar ao clicar fora */}
+      {}
       {isOpen && (
         <div 
           className="sidebar-overlay" 

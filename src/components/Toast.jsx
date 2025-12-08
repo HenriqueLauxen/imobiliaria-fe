@@ -2,14 +2,12 @@ import React, { useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 /**
- * Componente Toast para exibir notificações temporárias
- * @param {string} message - Mensagem a ser exibida
- * @param {string} type - Tipo do toast: 'success', 'error', 'info'
- * @param {function} onClose - Callback executado ao fechar o toast
- * @param {number} duration - Duração em ms antes de fechar automaticamente (padrão: 4000)
+ * @param {string} message
+ * @param {string} type
+ * @param {function} onClose
+ * @param {number} duration
  */
 function Toast({ message, type = 'info', onClose, duration = 4000 }) {
-  // Auto-close após a duração especificada
   useEffect(() => {
     if (duration) {
       const timer = setTimeout(() => {
@@ -19,7 +17,6 @@ function Toast({ message, type = 'info', onClose, duration = 4000 }) {
     }
   }, [duration, onClose]);
 
-  // Configurações de ícone e estilo baseadas no tipo
   const configs = {
     success: {
       icon: <CheckCircle size={20} />,
