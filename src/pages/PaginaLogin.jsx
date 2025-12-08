@@ -104,6 +104,26 @@ function PaginaLogin() {
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
+
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1rem',
+          backgroundColor: 'var(--background)',
+          borderRadius: 'var(--radius)',
+          border: '1px solid var(--border)',
+          color: 'var(--text-muted)',
+          fontSize: '0.9rem'
+        }}>
+          <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: '0.5rem' }}>
+            Usuários de teste
+          </div>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <div><strong>Admin:</strong> admin@nipia.com</div>
+            <div><strong>Corretor:</strong> consultor@nipia.com</div>
+            <div><strong>Cliente:</strong> cliente@nipia.com</div>
+            <div>Senha (todos): 123456</div>
+          </div>
+        </div>
       </div>
     </div>
   );
