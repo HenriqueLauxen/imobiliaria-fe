@@ -58,7 +58,7 @@ function PaginaBairros() {
   const deletarBairro = async (id) => {
     if (confirm('Deseja remover este bairro?')) {
       try {
-        await api.delete(`/bairros/${id}`);
+        await api.delete(`/api/bairros/${id}`);
         await carregarBairros();
       } catch (error) {
         alert('Erro ao excluir bairro');
