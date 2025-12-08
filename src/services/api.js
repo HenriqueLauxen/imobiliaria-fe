@@ -1,4 +1,4 @@
-const API_URL = 'https://imob-tjwp8g.fly.dev';
+const API_URL = 'https://imobiliaria-backend-sbjang.fly.dev';
 
 const getHeaders = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
