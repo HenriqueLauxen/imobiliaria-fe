@@ -1,6 +1,4 @@
-const API_URL = import.meta.env.PROD 
-  ? 'https://imobiliaria-be-production.up.railway.app' 
-  : '/api';
+const API_URL = 'https://imobiliaria-be.fly.dev';
 
 const api = {
   get: async (endpoint) => {
