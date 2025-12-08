@@ -7,7 +7,7 @@ import ToastContainer from '../components/ToastContainer';
 
 function PaginaBairros() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.tipo === 'CLIENTE') {
+  if (user.tipo === 'cliente') {
     return <div style={{ padding: '20px' }}>Acesso negado.</div>;
   }
 

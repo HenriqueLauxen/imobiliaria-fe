@@ -19,7 +19,7 @@ function App() {
   }
 
   const getHomeRoute = () => {
-    if (user.tipo === 'ADMIN') return '/usuarios';
+    if (user.tipo === 'administrador') return '/usuarios';
     return '/imoveis';
   };
 

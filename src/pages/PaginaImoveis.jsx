@@ -163,7 +163,7 @@ function PaginaImoveis() {
       <div className="page-container">
       <div className="page-header">
         <h1 className="page-title">Imóveis</h1>
-        {modo === 'lista' && user.tipo !== 'CLIENTE' && (
+        {modo === 'lista' && user.tipo !== 'cliente' && (
           <button 
             onClick={() => setModo('formulario')}
             className="btn btn-primary"
@@ -214,7 +214,7 @@ function PaginaImoveis() {
                     >
                       <Pencil size={16} />
                     </button>
-                    {user.tipo !== 'CLIENTE' && (
+                    {user.tipo !== 'cliente' && (
                     <button 
                       onClick={() => deletarImovel(imovel.id)} 
                       className="property-action-btn delete" 
