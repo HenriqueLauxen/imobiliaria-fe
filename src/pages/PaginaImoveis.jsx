@@ -20,6 +20,14 @@ function PaginaImoveis() {
   const canDelete = user.role === 'admin';
   const canCreate = user.role === 'admin' || user.role === 'corretor';
 
+  const isOwner = (imovel) => {
+    if (user.role === 'admin') return true;
+    if (imovel.criadoPor === user.email) return true;
+    const key = `my_properties_${user.email}`;
+    const myProps = JSON.parse(localStorage.getItem(key) || '[]');
+    return myProps.some(id => String(id) === String(imovel.id));
+  };
+
   const [formulario, setFormulario] = useState({
     titulo: '',
     precoVenda: '',
@@ -93,15 +101,56 @@ function PaginaImoveis() {
       const payload = {
         ...formulario,
         bairro: bairros.find(b => b.id == formulario.bairroId),
-        tipoImovel: tipos.find(t => t.id == formulario.tipoId)
+        tipoImovel: tipos.find(t => t.id == formulario.tipoId),
+        criadoPor: formulario.id ? formulario.criadoPor : user.email
       };
 
       if (formulario.id) {
         await api.put(`/api/imoveis/${formulario.id}`, payload);
         showToast('Imóvel atualizado com sucesso!', 'success');
+        
+        // Ensure local storage has this ID (for existing properties edited by owner)
+        const key = `my_properties_${user.email}`;
+        const myProps = JSON.parse(localStorage.getItem(key) || '[]');
+        if (!myProps.some(id => String(id) === String(formulario.id))) {
+             myProps.push(formulario.id);
+             localStorage.setItem(key, JSON.stringify(myProps));
+        }
       } else {
-        await api.post('/api/imoveis', payload);
+        // Capture current IDs to identify the new one later if needed
+        const existingIds = new Set(imoveis.map(i => i.id));
+
+        const res = await api.post('/api/imoveis', payload);
         showToast('Imóvel cadastrado com sucesso!', 'success');
+        
+        let newId = res && res.id;
+
+        if (!newId) {
+            // Fallback: fetch list and find new ID
+            try {
+                const updatedImoveis = await api.get('/api/imoveis');
+                // Find a property that wasn't in the list before and matches the title
+                // We sort by ID descending to get the latest one likely
+                const newImovel = updatedImoveis
+                    .filter(i => !existingIds.has(i.id))
+                    .find(i => i.titulo === payload.titulo);
+                
+                if (newImovel) {
+                    newId = newImovel.id;
+                }
+            } catch (e) {
+                console.error("Erro ao tentar recuperar ID do novo imóvel:", e);
+            }
+        }
+
+        if (newId) {
+            const key = `my_properties_${user.email}`;
+            const myProps = JSON.parse(localStorage.getItem(key) || '[]');
+            if (!myProps.some(id => String(id) === String(newId))) {
+                myProps.push(newId);
+                localStorage.setItem(key, JSON.stringify(myProps));
+            }
+        }
       }
       await carregarDados();
       setModo('lista');
@@ -212,7 +261,7 @@ function PaginaImoveis() {
 
                   {(canEdit || canDelete) && (
                     <div className="property-actions">
-                      {canEdit && (
+                      {canEdit && isOwner(imovel) && (
                         <button 
                           onClick={() => editarImovel(imovel)} 
                           className="property-action-btn" 

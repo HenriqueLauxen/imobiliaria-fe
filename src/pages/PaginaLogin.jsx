@@ -133,7 +133,7 @@ function PaginaLogin() {
           </div>
           <div style={{ display: 'grid', gap: '0.35rem' }}>
             <div><strong>Admin:</strong> admin@nipia.com</div>
-            <div><strong>Corretor:</strong> consultor@nipia.com</div>
+            <div><strong>Corretor:</strong> corretor@nipia.com</div>
             <div><strong>Cliente:</strong> cliente@nipia.com</div>
             <div>Senha (todos): 123456</div>
           </div>
