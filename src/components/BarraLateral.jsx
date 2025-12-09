@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Users, MapPin, Tags, Home, Image, ChevronRight, ChevronLeft, LayoutDashboard } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Users, MapPin, Tags, Home, Image, ChevronRight, ChevronLeft, LayoutDashboard, LogOut } from 'lucide-react';
 
 function BarraLateral() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   
   const menuItems = [
@@ -17,6 +18,11 @@ function BarraLateral() {
 
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    navigate('/login');
   };
 
   return (
@@ -56,6 +62,20 @@ function BarraLateral() {
               {item.label}
             </Link>
           ))}
+          
+          <div
+            className="nav-link"
+            onClick={handleLogout}
+            style={{ 
+              marginTop: 'auto', 
+              cursor: 'pointer'
+            }}
+            role="button"
+            tabIndex={0}
+          >
+            <LogOut size={20} />
+            Sair
+          </div>
         </nav>
       </div>
     </>
